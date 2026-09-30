@@ -272,24 +272,38 @@
 
   // Highlight the section currently in view in the sidebar nav.
   (function () {
-    var links = document.querySelectorAll('nav a[href^="#"]');
+    var links = Array.prototype.slice.call(document.querySelectorAll('nav a[href^="#"]'));
     var sections = Array.prototype.slice.call(document.querySelectorAll('main section[id]'));
     if (!links.length || !sections.length) return;
     var map = {};
     links.forEach(function (a) { map[a.getAttribute('href').slice(1)] = a; });
+    var locked = false; // true right after a nav click, until the user scrolls on their own
+
+    function setActive(id) {
+      links.forEach(function (a) { a.classList.remove('active'); });
+      var a = map[id]; if (a) a.classList.add('active');
+    }
     function update() {
-      var line = window.innerHeight * 0.3;
+      if (locked) return;
+      var line = 48; // px from the top of the viewport
       var current = sections[0];
       sections.forEach(function (s) {
         if (s.getBoundingClientRect().top <= line) current = s;
       });
-      // At the very bottom of the page, always mark the last section.
-      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2) {
-        current = sections[sections.length - 1];
-      }
-      links.forEach(function (a) { a.classList.remove('active'); });
-      var a = map[current.id]; if (a) a.classList.add('active');
+      setActive(current.id);
     }
+
+    // Clicking a nav item marks it immediately and keeps it until the user scrolls manually.
+    links.forEach(function (a) {
+      a.addEventListener('click', function () {
+        locked = true;
+        setActive(a.getAttribute('href').slice(1));
+      });
+    });
+    ['wheel', 'touchstart', 'keydown'].forEach(function (ev) {
+      window.addEventListener(ev, function () { locked = false; }, { passive: true });
+    });
+
     update();
     window.addEventListener('scroll', update, { passive: true });
     window.addEventListener('resize', update);
