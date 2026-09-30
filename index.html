@@ -180,7 +180,7 @@
       </div>
       <div class="entry">
         <div>
-          <p class="what"><strong>Hankyong National University</strong>, B.S., Mechatronics Engineering</p>
+          <p class="what"><strong>Hankyung National University</strong>, B.S., Mechatronics Engineering</p>
         </div>
         <span class="when">2014 – 2020</span>
       </div>
@@ -189,8 +189,9 @@
     <section id="research">
       <h2>Research</h2>
       <ul class="work">
-        <li>Vision-Language-Action models</li>
-        <li>Vision Applications</li>
+        <li>Vision-language-action models</li>
+        <li>Vision applications</li>
+        <li>Time-series forecasting</li>
       </ul>
     </section>
 
@@ -273,18 +274,26 @@
   // Highlight the section currently in view in the sidebar nav.
   (function () {
     var links = document.querySelectorAll('nav a[href^="#"]');
-    if (!links.length || !('IntersectionObserver' in window)) return;
+    var sections = Array.prototype.slice.call(document.querySelectorAll('main section[id]'));
+    if (!links.length || !sections.length) return;
     var map = {};
     links.forEach(function (a) { map[a.getAttribute('href').slice(1)] = a; });
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) {
-        if (e.isIntersecting) {
-          links.forEach(function (a) { a.classList.remove('active'); });
-          var a = map[e.target.id]; if (a) a.classList.add('active');
-        }
+    function update() {
+      var line = window.innerHeight * 0.3;
+      var current = sections[0];
+      sections.forEach(function (s) {
+        if (s.getBoundingClientRect().top <= line) current = s;
       });
-    }, { rootMargin: '-20% 0px -70% 0px' });
-    document.querySelectorAll('main section[id]').forEach(function (s) { io.observe(s); });
+      // At the very bottom of the page, always mark the last section.
+      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2) {
+        current = sections[sections.length - 1];
+      }
+      links.forEach(function (a) { a.classList.remove('active'); });
+      var a = map[current.id]; if (a) a.classList.add('active');
+    }
+    update();
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
   })();
 </script>
 </body>
